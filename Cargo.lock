@@ -54,7 +54,7 @@ dependencies = [
 
 [[package]]
 name = "http-client-metrics"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "const-str",
  "http",

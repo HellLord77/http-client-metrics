@@ -41,9 +41,9 @@ macro_rules! define_url_scheme {
 macro_rules! match_url_scheme {
     ($value:expr => $($variant:ident),+ $(,)?) => {
         ::pastey::paste! {
-            match $value {
+            match $value.as_str() {
                 $(
-                    _ if $value == ::http::uri::Scheme::$variant =>
+                    ::core::stringify!([<$variant:lower>]) =>
                         ::core::option::Option::Some([<URL_SCHEME_LABEL_ $variant>]),
                 )*
                 _ => ::core::option::Option::None,

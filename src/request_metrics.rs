@@ -1,5 +1,6 @@
 use http::Method;
 use http::Request;
+use http::Uri;
 use http::Version;
 use http::uri::Scheme;
 use http_body::Body;
@@ -67,7 +68,7 @@ impl RequestMetrics {
             http_client_request_body_size: req.body().size_hint().lower(),
             http_request_method: http_request_method(req.method()),
             server_address: req.uri().host().map(ToString::to_string),
-            server_port: req.uri().port_u16(),
+            server_port: port_or_known_default(req.uri()),
             network_protocol_version: req.version(),
             url_scheme: req.uri().scheme().and_then(url_scheme),
         }
@@ -116,5 +117,21 @@ fn network_protocol_version(network_protocol_version: &Version) -> Option<Label>
 }
 
 fn url_scheme(url_scheme: &Scheme) -> Option<Label> {
-    match_url_scheme!(*url_scheme => HTTP, HTTPS)
+    match_url_scheme!(url_scheme => HTTP, HTTPS)
+}
+
+#[inline]
+fn port_or_known_default(uri: &Uri) -> Option<u16> {
+    uri.port_u16()
+        .or_else(|| uri.scheme_str().and_then(default_port))
+}
+
+#[inline]
+fn default_port(scheme: &str) -> Option<u16> {
+    match scheme {
+        "http" | "ws" => Some(80),
+        "https" | "wss" => Some(443),
+        "ftp" => Some(21),
+        _ => None,
+    }
 }
